@@ -52,4 +52,12 @@ public class DiaryAdapter extends RecyclerView.Adapter<DiaryAdapter.DiaryViewHol
             tvTitle=itemView.findViewById(R.id.tv_title);
         }
     }
+
+    public void changeTitle(){
+        for (int i=0;i<mData.size();i++){
+            Diary diary=mData.get(i);
+            diary.title="修改后的值:"+i;
+        }
+        notifyDataSetChanged();
+    }
 }

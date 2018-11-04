@@ -7,6 +7,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Handler;
+import android.os.Message;
 import android.support.constraint.ConstraintLayout;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -75,7 +77,8 @@ public class MenuPopupWindow extends PopupWindow implements View.OnClickListener
         float radius = 10;//模糊程度
         int width = mBitmap.getWidth();
         int height =  mBitmap.getHeight();
-
+        Message message=new Message();
+        Handler handler=new Handler();
         overlay = Bitmap.createBitmap((int) (width / scaleFactor),(int) (height / scaleFactor),Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(overlay);
         canvas.scale(1 / scaleFactor, 1 / scaleFactor);
