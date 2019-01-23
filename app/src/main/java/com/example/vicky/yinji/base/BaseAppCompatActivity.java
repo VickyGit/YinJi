@@ -19,6 +19,9 @@ public abstract class BaseAppCompatActivity extends RxAppCompatActivity {
     private Unbinder mUnbinder;
     protected RxAppCompatActivity mActivity;
     private static PermissionListener mListener;
+    public static final int CAMERA_CODE = 1;
+    public static final int GALLERY_CODE = 2;
+    public static final int CROP_CODE = 3;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

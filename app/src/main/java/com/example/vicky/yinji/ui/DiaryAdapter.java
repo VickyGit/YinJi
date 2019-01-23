@@ -1,14 +1,16 @@
 package com.example.vicky.yinji.ui;
 
 import android.content.Context;
-import android.widget.ImageView;
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
+import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.example.easyadapter.base.EasyRvAdapter;
 import com.example.easyadapter.base.EasyRvViewHolder;
 import com.example.easyadapter.base.FooterListener;
 import com.example.vicky.yinji.R;
 import com.example.vicky.yinji.entry.Diary;
+import com.example.vicky.yinji.widget.DiaryItemView;
 
 import java.util.List;
 
@@ -20,8 +22,34 @@ public class DiaryAdapter extends EasyRvAdapter<Diary> {
     @Override
     public void convert(EasyRvViewHolder easyRvViewHolder, Diary diary, int position) {
         if (position<mDatas.size()){
-            Glide.with(mContext).load(R.mipmap.ic_image).into((ImageView) easyRvViewHolder.getView(R.id.iv_bg));
-            easyRvViewHolder.setText(R.id.tv_title,diary.title);
+            DiaryItemView diaryItemView = easyRvViewHolder.getView(R.id.diary_item);
+            diaryItemView.setTitle(diary.title);
+            diaryItemView.setBackGround(R.mipmap.ic_image);
+            diaryItemView.setMenuListener(new DiaryItemView.OnMenuListener() {
+                @Override
+                public void onClickDelete() {
+                    AlertDialog dialog = new AlertDialog.Builder(mContext)
+                            .setMessage("亲爱的主人，你确定要删除这条印迹吗？")
+                            .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Toast.makeText(mContext,"你点击了确定",Toast.LENGTH_LONG).show();
+                                }
+                            }).show();
+                }
+
+                @Override
+                public void onClickEdit() {
+
+                }
+            });
+
         }
     }
 
@@ -30,10 +58,4 @@ public class DiaryAdapter extends EasyRvAdapter<Diary> {
         super.addFootLayout(footLayoutId, footerListener);
     }
 
-    public void setTitle(){
-        for (int i=0;i<mDatas.size();i++){
-            Diary diary=mDatas.get(i);
-            diary.title="修改后的值:"+i;
-        }
-    }
 }

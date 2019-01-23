@@ -39,6 +39,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.readDiary.ReadDiaryActivity"
+            android:screenOrientation="portrait"></activity>
         <provider
             android:authorities="com.example.vicky.yinji.provider"
             android:name="android.support.v4.content.FileProvider"

@@ -18,7 +18,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.example.easyadapter.base.EasyOnLoadMoreListener;
 import com.example.easyadapter.base.EasyRvItemListenter;
 import com.example.easyadapter.base.EasyRvViewHolder;
@@ -26,6 +25,7 @@ import com.example.easyadapter.base.FooterListener;
 import com.example.vicky.yinji.R;
 import com.example.vicky.yinji.base.BaseAppCompatActivity;
 import com.example.vicky.yinji.entry.Diary;
+import com.example.vicky.yinji.ui.readDiary.ReadDiaryActivity;
 import com.example.vicky.yinji.util.DensityUtil;
 import com.example.vicky.yinji.widget.MenuPopupWindow;
 
@@ -44,9 +44,6 @@ public class MainActivity extends BaseAppCompatActivity {
     FloatingActionButton fabButton;
     @BindView(R.id.iv_header)
     ImageView ivHeader;
-    public static final int CAMERA_CODE = 1;
-    public static final int GALLERY_CODE = 2;
-    public static final int CROP_CODE = 3;
     private List<Diary> mDiaryData=new ArrayList<>();
     private DiaryAdapter mAdapter;
     private File mCameraFile;
@@ -192,7 +189,9 @@ public class MainActivity extends BaseAppCompatActivity {
                 if (data == null){
                     return;
                 }else {
-                    Glide.with(this).load(mZoomFile).into(ivHeader);
+                    Intent intent = new Intent(this, ReadDiaryActivity.class);
+                    intent.putExtra("imageUri",Uri.fromFile(mZoomFile));
+                    startActivity(intent);
                 }
                 break;
             default:
