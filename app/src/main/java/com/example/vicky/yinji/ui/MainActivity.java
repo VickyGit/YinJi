@@ -1,20 +1,24 @@
 package com.example.vicky.yinji.ui;
 
-import android.graphics.Color;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.easyadapter.base.EasyOnLoadMoreListener;
 import com.example.easyadapter.base.EasyRvItemListenter;
 import com.example.easyadapter.base.EasyRvViewHolder;
@@ -22,8 +26,10 @@ import com.example.easyadapter.base.FooterListener;
 import com.example.vicky.yinji.R;
 import com.example.vicky.yinji.base.BaseAppCompatActivity;
 import com.example.vicky.yinji.entry.Diary;
+import com.example.vicky.yinji.util.DensityUtil;
 import com.example.vicky.yinji.widget.MenuPopupWindow;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +42,15 @@ public class MainActivity extends BaseAppCompatActivity {
     RecyclerView rvDiary;
     @BindView(R.id.fab)
     FloatingActionButton fabButton;
+    @BindView(R.id.iv_header)
+    ImageView ivHeader;
+    public static final int CAMERA_CODE = 1;
+    public static final int GALLERY_CODE = 2;
+    public static final int CROP_CODE = 3;
     private List<Diary> mDiaryData=new ArrayList<>();
-    private TestAdapter mAdapter;
+    private DiaryAdapter mAdapter;
+    private File mCameraFile;
+    private File mZoomFile;
     private Handler mHandler=new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -64,13 +77,22 @@ public class MainActivity extends BaseAppCompatActivity {
             @Override
             public void onClick(View v) {
                 MenuPopupWindow menuPopupWindow=new MenuPopupWindow(mActivity);
+                menuPopupWindow.setListener(new MenuPopupWindow.onMenuListener() {
+                    @Override
+                    public void clickFromCamera() {
+                        chooseFromCamera();
+                    }
+
+                    @Override
+                    public void clickFromGallery() {
+                        chooseFromGallery();
+                    }
+                });
                 menuPopupWindow.showPopWindow(toolbar);
             }
         });
-//        mAdapter=new DiaryAdapter(this,mDiaryData);
-//        rvDiary.setLayoutManager(new LinearLayoutManager(this));
-//        rvDiary.setAdapter(mAdapter);
-        mAdapter=new TestAdapter(this,R.layout.item_diary,mDiaryData);
+
+        mAdapter=new DiaryAdapter(this,R.layout.item_diary,mDiaryData);
         mAdapter.setOnItemClickListener(new EasyRvItemListenter.onItemClickListener<Diary>() {
             @Override
             public void onItemClick(Diary item, int position, View view) {
@@ -143,5 +165,110 @@ public class MainActivity extends BaseAppCompatActivity {
         }
         return addData;
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK){
+            return;
+        }
+        switch (requestCode){
+            case CAMERA_CODE:
+                if (Build.VERSION.SDK_INT>=24){
+                    startImageZoom(FileProvider.getUriForFile(this, "com.example.vicky.yinji.provider", mCameraFile));
+                }else {
+                    startImageZoom(Uri.fromFile(mCameraFile));
+                }
+                break;
+            case GALLERY_CODE:
+                if (data == null){
+                    return;
+                }else {
+                    Uri imageUri = data.getData();
+                    startImageZoom(imageUri);
+                }
+                break;
+            case CROP_CODE:
+                if (data == null){
+                    return;
+                }else {
+                    Glide.with(this).load(mZoomFile).into(ivHeader);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+
+
+
+    /**
+     * 拍照选择图片
+     */
+    public void chooseFromCamera() {
+        mCameraFile = new File(this.getExternalCacheDir(), System.currentTimeMillis() + ".png");
+        try {
+            if (mCameraFile.exists()) {
+                mCameraFile.delete();
+            }
+            mCameraFile.createNewFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Uri imageUri;
+        if (Build.VERSION.SDK_INT >= 24) {
+            imageUri = FileProvider.getUriForFile(this, "com.example.vicky.yinji.provider", mCameraFile);
+        } else {
+            imageUri = Uri.fromFile(mCameraFile);
+        }
+        //构建隐式Intent
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
+        //调用系统相机
+        this.startActivityForResult(intent, CAMERA_CODE);
+    }
+
+
+    /**
+     * 从相册选择图片
+     */
+    public void chooseFromGallery() {
+        Intent intent = new Intent(
+                Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        this.startActivityForResult(intent, GALLERY_CODE);
+    }
+
+
+    /**
+     * 通过Uri传递图像信息以供裁剪
+     * @param uri
+     */
+    private void startImageZoom(Uri uri){
+        try{
+            Intent intent = new Intent("com.android.camera.action.CROP");
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setDataAndType(uri, "image/*");
+            intent.putExtra("crop", "true");
+            intent.putExtra("aspectX", 1);
+            intent.putExtra("aspectY", 1);
+            intent.putExtra("outputX", DensityUtil.dip2px(this,200));
+            intent.putExtra("outputY", DensityUtil.dip2px(this,200));
+            intent.putExtra("scale", true);
+            //将剪切的图片保存到目标Uri中
+            intent.putExtra("return-data", false);
+            intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
+            intent.putExtra("noFaceDetection", true);
+            //由于intent大小限制，所以直接将裁剪后的图片以文件形式输出
+            mZoomFile = new File(this.getExternalCacheDir(), System.currentTimeMillis() + "-crop.png");
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mZoomFile));
+            this.startActivityForResult(intent, CROP_CODE);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
 
 }

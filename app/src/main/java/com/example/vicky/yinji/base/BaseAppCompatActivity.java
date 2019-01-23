@@ -71,7 +71,6 @@ public abstract class BaseAppCompatActivity extends RxAppCompatActivity {
     protected abstract void initData();
 
     public static void requestRuntimePermission(String[] permissions, PermissionListener listener) {
-
         if (ActivityManager.getInstance().getTopAty() == null) {
             return;
         }
